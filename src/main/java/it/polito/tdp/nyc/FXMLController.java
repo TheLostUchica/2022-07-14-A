@@ -1,7 +1,10 @@
 package it.polito.tdp.nyc;
 
 import java.net.URL;
+import java.util.Map;
 import java.util.ResourceBundle;
+
+import it.polito.tdp.nyc.model.Coppia;
 import it.polito.tdp.nyc.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -41,7 +44,7 @@ public class FXMLController {
     private TableColumn<?, ?> clV2; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbBorough"
-    private ComboBox<?> cmbBorough; // Value injected by FXMLLoader
+    private ComboBox<String> cmbBorough; // Value injected by FXMLLoader
 
     @FXML // fx:id="tblArchi"
     private TableView<?> tblArchi; // Value injected by FXMLLoader
@@ -57,17 +60,40 @@ public class FXMLController {
 
     @FXML
     void doAnalisiArchi(ActionEvent event) {
-    	
-
+    	if(model.isGraphLoaded()) {
+    		for (Coppia c : model.getTable()) {
+    			this.txtResult.appendText(c.toString()+"\n");
+    		}
+    	}
     }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
-    	
+    	String borgo = this.cmbBorough.getValue();
+    	if(borgo!=null) {
+    		model.creaGrafo(borgo);
+    		this.txtResult.appendText("Grafo creato con successo. Vertici "+model.getGrafo().vertexSet().size()+" e archi "+model.getGrafo().edgeSet().size()+ "\n");
+    	}
     }
 
     @FXML
     void doSimula(ActionEvent event) {
+    	this.txtResult.clear();
+    	String d = this.txtDurata.getText();
+    	String p = this.txtProb.getText();
+    	try {
+    		int D = Integer.parseInt(d);
+    		double P = Double.parseDouble(p);
+    		model.Simula(P, D);
+    		for(String s : model.getMapC().keySet()) {
+    			int i = model.getMapC().get(s);
+    			if(i>0)
+    			this.txtResult.appendText(s+ " "+i+"\n");
+    		}
+    	}catch(NumberFormatException e) {
+    		e.printStackTrace();
+    		this.txtResult.appendText("Dati inserito in modo scorretto.\n");
+    	}
 
     }
 
@@ -84,12 +110,19 @@ public class FXMLController {
         assert txtDurata != null : "fx:id=\"txtDurata\" was not injected: check your FXML file 'Scene.fxml'.";
         assert txtProb != null : "fx:id=\"txtProb\" was not injected: check your FXML file 'Scene.fxml'.";
         assert txtResult != null : "fx:id=\"txtResult\" was not injected: check your FXML file 'Scene.fxml'.";
-
+        
         
     }
     
     public void setModel(Model model) {
     	this.model = model;
+    	this.setCombo();
+    }
+    
+    public void setCombo() {
+    	for(String b : model.getBorghi()) {
+    		this.cmbBorough.getItems().add(b);
+    	}
     }
 
 }
